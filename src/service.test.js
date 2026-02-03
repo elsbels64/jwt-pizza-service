@@ -322,6 +322,15 @@ test('update user', async () => {
   expectValidJwt(res.body.token); 
 } );  
 
+test('update user unauthorized', async () => {
+  const res = await request(app)
+    .put('/api/user/9999') // assuming 9999 is not the test user's ID  
+    .set('Authorization', `Bearer ${testUserAuthToken}`)
+    .send({ name: 'hacker', email: 'email.emil.com', password: 'hackpass' });
+  expect(res.status).toBe(403);
+  expect(res.body).toEqual({ message: 'unauthorized' });
+} );
+
 
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
