@@ -86,6 +86,14 @@ test('create franchise', async () => {
   expect(created).toMatchObject(usedFranchise);
 });
 
+test('create franchise unauthorized', async () => {
+  const res = await request(app)
+    .post('/api/franchise') 
+    .set('Authorization', `Bearer ${testUserAuthToken}`)  
+    .send({ name: `Unauthorized Franchise ${randomName()}` });
+  expect(res.status).toBe(403);
+});
+
 test('delete franchise', async () => {
   const { created } = await createFranchise({ name: `Delete Franchise ${randomName()}` });
   const res = await request(app)
