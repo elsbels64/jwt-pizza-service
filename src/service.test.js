@@ -236,6 +236,13 @@ test('create order unauthorized', async () => {
   expect(res.body).toEqual({ message: 'unauthorized' });
 } );
 
+test('delete user unauthorized', async () => {
+  const res = await request(app)
+    .delete('/api/user/9999') // assuming 9999 is not the test user's ID  
+    .set('Authorization', `Bearer ${testUserAuthToken}`);
+  expect(res.status).toBe(403);
+  expect(res.body).toEqual({ message: 'unauthorized' });
+} );  
 
 
 function expectValidJwt(potentialJwt) {
