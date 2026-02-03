@@ -155,14 +155,24 @@ test('delete store unauthorized', async () => {
   expect(res.body).toEqual({ message: 'unauthorized' });  
 } );
 
-test('delet store non-existent store', async () => {
+
+test('delete store non-existent store', async () => {
   const { created: franchise, adminAuthToken } = await createFranchise({ name: `NonExistent Store Franchise ${randomName()}` });
   const res = await request(app)  
-    .delete(`/api/franchise/${franchise.id}/store/fake`) // assuming 999999 does not exist
+    .delete(`/api/franchise/${franchise.id}/store/36`) // assuming 999999 does not exist
     .set('Authorization', `Bearer ${adminAuthToken}`); 
   expect(res.status).toBe(403);
   expect(res.body).toEqual({ message: 'unable to delete a store' });  
 } );
+
+test('get menu', async () => {
+  const res = await request(app)
+    .get('/api/order/menu');
+  expect(res.status).toBe(200);
+  expect(Array.isArray(res.body)).toBe(true);
+});
+
+
 
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
