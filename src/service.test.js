@@ -136,7 +136,33 @@ test('create store', async () => {
 });
 
 
+test('delete store unauthorized', async () => {
+  const { created: franchise } = await createFranchise({ name: `Unauthorized Store Franchise ${randomName()}` });
+  const storeData = { name: `Unauthorized Test Store ${randomName()}`, address: '123 Test St', phone: '555-1234' };    
+  const adminUser = await createAdminUser();
+  const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
+  const adminAuthToken = adminLoginRes.body.token;  
 
+  const storeRes = await request(app)
+    .post(`/api/franchise/${franchise.id}/store`)
+    .set('Authorization', `Bearer ${adminAuthToken}`)
+    .send(storeData); 
+  expect(storeRes.status).toBe(200);
+  const storeId = storeRes.body.id;   
+  const res = await request(app)
+    .delete(`/api/franchise/${franchise.id}/store/${storeId}`); 
+  expect(res.status).toBe(401);
+  expect(res.body).toEqual({ message: 'unauthorized' });  
+} );
+
+test('delet store non-existent store', async () => {
+  const { created: franchise, adminAuthToken } = await createFranchise({ name: `NonExistent Store Franchise ${randomName()}` });
+  const res = await request(app)  
+    .delete(`/api/franchise/${franchise.id}/store/fake`) // assuming 999999 does not exist
+    .set('Authorization', `Bearer ${adminAuthToken}`); 
+  expect(res.status).toBe(403);
+  expect(res.body).toEqual({ message: 'unable to delete a store' });  
+} );
 
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
