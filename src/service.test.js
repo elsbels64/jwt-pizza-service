@@ -184,15 +184,15 @@ test('add menu item', async () => {
   const adminUser = await createAdminUser();
   const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
   const adminAuthToken = adminLoginRes.body.token;      
-  const newItem = { menuId: Math.floor(Math.random() * 10000) + 1000, description: 'New Test Item', price: 4.99 };
+  const newItem = { title: `New Test Item ${randomName()}`, description: `Delicious ${randomName()}`, image: 'pizza-test.png', price: 4.99 };
   const res = await request(app)
     .put('/api/order/menu')
     .set('Authorization', `Bearer ${adminAuthToken}`)
     .send(newItem);
   expect(res.status).toBe(200);
-  const found = res.body.find((item) => item.menuId === newItem.menuId);
+  const found = res.body.find((item) => item.title === newItem.title);
   expect(found).toBeDefined();
-  expect(found).toMatchObject(newItem);
+  expect(found).toMatchObject({ title: newItem.title, description: newItem.description, price: newItem.price });
 });
 
 function expectValidJwt(potentialJwt) {
