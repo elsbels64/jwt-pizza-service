@@ -3,14 +3,14 @@ const app = require('../service');
 
 const { Role, DB } = require('../database/database.js');
 
-async function createAdminUser() {
-  let user = { password: 'toomanysecrets', roles: [{ role: Role.Admin }] };
-  user.name = randomName();
-  user.email = user.name + '@admin.com';
+// async function createAdminUser() {
+//   let user = { password: 'toomanysecrets', roles: [{ role: Role.Admin }] };
+//   user.name = randomName();
+//   user.email = user.name + '@admin.com';
 
-  user = await DB.addUser(user);
-  return { ...user, password: 'toomanysecrets' };
-}
+//   user = await DB.addUser(user);
+//   return { ...user, password: 'toomanysecrets' };
+// }
 
 const testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
 let testUserAuthToken;
@@ -31,6 +31,12 @@ test('login', async () => {
   delete expectedUser.password;
   expect(loginRes.body.user).toMatchObject(expectedUser);
 });
+
+test('missing password returns 400 with required message', async () => {
+    const res = await request(app).post('/api/auth').send({ name: 'no pass', email: 'nop@test.com' });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'name, email, and password are required' });
+  });
 
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
