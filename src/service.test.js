@@ -19,6 +19,25 @@ async function createAdminUser() {
   return { ...user, password: 'toomanysecrets' };
 }
 
+async function createFranchise(franchise = null, adminUser = null) {
+  const admin = adminUser || await createAdminUser();
+  const adminLoginRes = await request(app).put('/api/auth').send({ email: admin.email, password: admin.password });
+  const adminAuthToken = adminLoginRes.body.token;
+
+  const usedFranchise = franchise || { name: `Test Franchise ${randomName()}`, admins: [{ email: admin.email }] };
+  if (!Array.isArray(usedFranchise.admins)) {
+    usedFranchise.admins = usedFranchise.admins ? [usedFranchise.admins] : [];
+  }
+
+  const res = await request(app)
+    .post('/api/franchise')
+    .set('Authorization', `Bearer ${adminAuthToken}`)
+    .send(usedFranchise);
+
+  const created = res.body && (res.body.franchise || res.body.data || res.body);
+  return { res, created, usedFranchise, admin, adminAuthToken };
+}
+
 beforeAll(async () => {
   testUser.email = Math.random().toString(36).substring(2, 12) + '@test.com';
   const registerRes = await request(app).post('/api/auth').send(testUser);
@@ -57,29 +76,32 @@ test('missing password: returns 400 with required message', async () => {
     expect(res.body).toEqual({ message: 'name, email, and password are required' });
   });
 
-
 test('create franchise', async () => {
-  const adminUser = await createAdminUser();
-  const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
-  const adminAuthToken = adminLoginRes.body.token;
-  const newFranchise = { name: 'Test Franchise', admins: [{ email: adminUser.email }] };
-  newFranchise.name = `Test Franchise ${randomName()}`;
-  // Ensure admins is always an array to avoid "not iterable" errors if the body is mutated
-  if (!Array.isArray(newFranchise.admins)) {
-    newFranchise.admins = newFranchise.admins ? [newFranchise.admins] : [];
-  }
-
-  const res = await request(app)
-    .post('/api/franchise')
-    .set('Authorization', `Bearer ${adminAuthToken}`)
-    .send(newFranchise);
-
+  const { res, created, usedFranchise } = await createFranchise();
   expect(res.status).toBe(200);
-  // Support servers that return the created franchise either at the top-level or nested (e.g., { franchise: {...} } or { data: {...} })
-  const created = res.body && (res.body.franchise || res.body.data || res.body);
-  expect(created).toMatchObject(newFranchise);
+  expect(created).toMatchObject(usedFranchise);
 });
 
+test('delete franchise', async () => {
+  const { created } = await createFranchise({ name: `Delete Franchise ${randomName()}` });
+  const res = await request(app)
+    .delete(`/api/franchise/${created.id}`);
+
+  expect(res.status).toBe(200);
+  expect(res.body).toEqual({ message: 'franchise deleted' });
+});
+
+test('get franchise', async () => {
+  const { created } = await createFranchise({ name: `Get Franchise ${randomName()}` });
+  const res = await request(app)
+    .get('/api/franchise/')
+    .set('Authorization', `Bearer ${testUserAuthToken}`); 
+  expect(res.status).toBe(200);
+  expect(Array.isArray(res.body.franchises)).toBe(true);
+  const found = res.body.franchises.find((f) => f.id === created.id);
+  expect(found).toBeDefined();
+  expect(found).toMatchObject({ name: created.name });
+}); 
 
 
 
