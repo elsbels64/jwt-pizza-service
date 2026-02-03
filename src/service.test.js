@@ -306,7 +306,21 @@ test('list users', async () => {
   expect(Array.isArray(res.body)).toBe(true);
 } );  
 
-
+test('update user', async () => {
+  const newUser = { name: 'update me', email: `updateme${randomName()}@test.com`, password: 'updatepass' };
+  const registerRes = await request(app).post('/api/auth').send(newUser);
+  expect(registerRes.status).toBe(200);
+  const authToken = registerRes.body.token;
+  const userId = registerRes.body.user.id;    
+  const updatedInfo = { name: 'updated name', email: `updated${randomName()}@test.com`, password: 'newpass' };  
+  const res = await request(app)
+    .put(`/api/user/${userId}`)
+    .set('Authorization', `Bearer ${authToken}`)
+    .send(updatedInfo); 
+  expect(res.status).toBe(200);
+  expect(res.body.user).toMatchObject({ id: userId, name: updatedInfo.name, email: updatedInfo.email });
+  expectValidJwt(res.body.token); 
+} );  
 
 
 function expectValidJwt(potentialJwt) {
