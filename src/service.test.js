@@ -244,6 +244,12 @@ test('delete user unauthorized', async () => {
   expect(res.body).toEqual({ message: 'unauthorized' });
 } );  
 
+test('get user unauthorized', async () => {
+  const res = await request(app)
+    .get('/api/user/me'); 
+  expect(res.status).toBe(401);
+  expect(res.body).toEqual({ message: 'unauthorized' });
+} );
 
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
