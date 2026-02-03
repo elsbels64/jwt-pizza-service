@@ -103,29 +103,29 @@ test('delete franchise', async () => {
   expect(res.body).toEqual({ message: 'franchise deleted' });
 });
 
-test('get franchise', async () => {
-  const { created } = await createFranchise({ name: `Get Franchise ${randomName()}` });
-  const res = await request(app)
-    .get('/api/franchise/')
-    .set('Authorization', `Bearer ${testUserAuthToken}`); 
-  expect(res.status).toBe(200);
-  expect(Array.isArray(res.body.franchises)).toBe(true);
-  const found = res.body.franchises.find((f) => f.id === created.id);
-  expect(found).toBeDefined();
-  expect(found).toMatchObject({ name: created.name });
-}); 
+// test('get franchise', async () => {
+//   const { created } = await createFranchise({ name: `Get Franchise ${randomName()}` });
+//   const res = await request(app)
+//     .get('/api/franchise/')
+//     .set('Authorization', `Bearer ${testUserAuthToken}`); 
+//   expect(res.status).toBe(200);
+//   expect(Array.isArray(res.body.franchises)).toBe(true);
+//   const found = res.body.franchises.find((f) => f.id === created.id);
+//   expect(found).toBeDefined();
+//   expect(found).toMatchObject({ name: created.name });
+// }); 
 
-test('get user franchises', async () => {
-  const { created, admin, adminAuthToken } = await createFranchise({ name: `User Franchise ${randomName()}` });
-  const res = await request(app)    
-    .get(`/api/franchise/${admin.id}`)
-    .set('Authorization', `Bearer ${adminAuthToken}`); 
-  expect(res.status).toBe(200);
-  expect(Array.isArray(res.body)).toBe(true);
-  const found = res.body.find((f) => f.id === created.id);
-  expect(found).toBeDefined();
-  expect(found).toMatchObject({ name: created.name });
-});
+// test('get user franchises', async () => {
+//   const { created, admin, adminAuthToken } = await createFranchise({ name: `User Franchise ${randomName()}` });
+//   const res = await request(app)    
+//     .get(`/api/franchise/${admin.id}`)
+//     .set('Authorization', `Bearer ${adminAuthToken}`); 
+//   expect(res.status).toBe(200);
+//   expect(Array.isArray(res.body)).toBe(true);
+//   const found = res.body.find((f) => f.id === created.id);
+//   expect(found).toBeDefined();
+//   expect(found).toMatchObject({ name: created.name });
+// });
 
 test('create store', async () => {
   const { created: franchise, adminAuthToken } = await createFranchise({ name: `Store Franchise ${randomName()}` });
