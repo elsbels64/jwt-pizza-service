@@ -115,6 +115,27 @@ test('get user franchises', async () => {
   expect(found).toMatchObject({ name: created.name });
 });
 
+test('create store', async () => {
+  const { created: franchise, adminAuthToken } = await createFranchise({ name: `Store Franchise ${randomName()}` });
+  const storeData = { name: `Test Store ${randomName()}`, address: '123 Test St', phone: '555-1234' };    
+  const res = await request(app)
+    .post(`/api/franchise/${franchise.id}/store`)
+    .set('Authorization', `Bearer ${adminAuthToken}`)
+    .send(storeData); 
+  expect(res.status).toBe(200);
+  expect(res.body.name).toMatch(storeData.name);  
+
+  const storeId = res.body.id;
+
+  // Cleanup - delete the store
+  const deleteRes = await request(app)
+    .delete(`/api/franchise/${franchise.id}/store/${storeId}`)
+    .set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(deleteRes.status).toBe(200);
+  expect(deleteRes.body).toEqual({ message: 'store deleted' });
+});
+
+
 
 
 function expectValidJwt(potentialJwt) {
