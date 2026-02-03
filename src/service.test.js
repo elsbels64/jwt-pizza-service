@@ -22,6 +22,12 @@ test('login', async () => {
 
 const { DB } = require('./database/database.js');
 
+// provide minimal local definitions to avoid ReferenceError during tests
+const Role = { Admin: 'admin' };
+function randomName() {
+  return 'user' + Math.random().toString(36).substring(2, 10);
+}
+
 async function createAdminUser() {
   let user = { password: 'toomanysecrets', roles: [{ role: Role.Admin }] };
   user.name = randomName();
