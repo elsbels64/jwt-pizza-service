@@ -220,6 +220,15 @@ test('get orders', async () => {
   expect(Array.isArray(res.body.orders)).toBe(true);
 } );
 
+test('get orders unauthorized', async () => {
+  const res = await request(app)    
+    .get('/api/order'); 
+  expect(res.status).toBe(401);
+  expect(res.body).toEqual({ message: 'unauthorized' });
+} );
+
+
+
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
 }
