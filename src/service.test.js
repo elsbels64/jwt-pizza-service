@@ -206,6 +206,16 @@ test('create order', async () => {
   expectValidJwt(res.body.jwt);
 });
 
+test('get orders', async () => {
+  const res = await request(app)    
+    .get('/api/order')
+    .set('Authorization', `Bearer ${testUserAuthToken}`); 
+  expect(res.status).toBe(200);
+  expect(res.body).toHaveProperty('dinerId');
+  expect(res.body).toHaveProperty('orders');
+  expect(Array.isArray(res.body.orders)).toBe(true);
+} );
+
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
 }
