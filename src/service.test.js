@@ -1,8 +1,23 @@
 const request = require('supertest');
 const app = require('./service');
 
+const { Role, DB } = require('./database/database.js');
+// const { setAuthUser } = require('./routes/authRouter');
+// const jwt = require('jsonwebtoken');
+// const config = require('./config.js');
+
+
 const testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
 let testUserAuthToken;
+
+async function createAdminUser() {
+  let user = { password: 'toomanysecrets', roles: [{ role: Role.Admin }] };
+  user.name = randomName();
+  user.email = user.name + '@admin.com';
+
+  user = await DB.addUser(user);
+  return { ...user, password: 'toomanysecrets' };
+}
 
 beforeAll(async () => {
   testUser.email = Math.random().toString(36).substring(2, 12) + '@test.com';
@@ -41,6 +56,26 @@ test('missing password: returns 400 with required message', async () => {
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ message: 'name, email, and password are required' });
   });
+
+
+test('create franchise', async () => {
+  const adminUser = await createAdminUser();
+  const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
+  const adminAuthToken = adminLoginRes.body.token;
+  const newFranchise = { name: 'Test Franchise' , admins: [{ email: adminUser.email }]};
+
+  const res = await request(app)
+    .post('/api/franchise')
+    .set('Authorization', `Bearer ${adminAuthToken}`)
+    .send(newFranchise);
+
+  expect(res.status).toBe(200);
+  // Support servers that return the created franchise either at the top-level or nested (e.g., { franchise: {...} } or { data: {...} })
+  const created = res.body && (res.body.franchise || res.body.data || res.body);
+  expect(created).toMatchObject(newFranchise);
+});
+
+
 
 
 function expectValidJwt(potentialJwt) {
