@@ -63,9 +63,13 @@ test('register', async () => {
 });
 
 test('logout', async () => {
-  const res = await request(app)
+  const newUser = { name: 'new user', email: 'email@email.com', password: 'newpass' };
+  let res = await request(app).post('/api/auth').send(newUser);
+  expect(res.status).toBe(200);
+  expectValidJwt(res.body.token);
+  res = await request(app)
     .delete('/api/auth')  
-    .set('Authorization', `Bearer ${testUserAuthToken}`);
+    .set('Authorization', `Bearer ${res.body.token}`);
   expect(res.status).toBe(200);
   expect(res.body).toEqual({ message: 'logout successful' });
 });
