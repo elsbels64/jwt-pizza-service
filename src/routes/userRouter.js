@@ -71,7 +71,24 @@ userRouter.get(
   '/',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    res.json({ message: 'not implemented', users: [], more: false });
+    const requester = req.user;
+    if (!requester.isRole(Role.Admin)) {
+      return res.status(403).json({ message: 'unauthorized' });
+    }
+
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Number(req.query.limit) || 10);
+    const offset = (page - 1) * limit;
+
+    // DB.listUsers is expected to return an array of users for the given offset/limit.
+    // Adjust the DB call if your database API differs.
+    const result = await DB.listUsers(offset, limit);
+    const users = Array.isArray(result) ? result : (result && result.users) || [];
+
+    // Determine "more" flag: if the returned array length equals the limit, there may be more.
+    const more = users.length === limit;
+
+    res.json({ users, more });
   })
 );
 

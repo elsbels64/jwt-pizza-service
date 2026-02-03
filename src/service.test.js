@@ -286,6 +286,26 @@ test('delete user', async () => {
   expect(res.body).toEqual({ message: 'user deleted' });
 } );  
 
+test('list users unauthorized', async () => {
+  const res = await request(app)
+    .get('/api/user/')    
+    .set('Authorization', `Bearer ${testUserAuthToken}`);
+  expect(res.status).toBe(403);
+  expect(res.body).toEqual({ message: 'unauthorized' });
+} );
+
+test('list users', async () => {
+  const adminUser = await createAdminUser();
+  const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
+  const adminAuthToken = adminLoginRes.body.token;  
+  const res = await request(app)
+
+    .get('/api/user/')    
+    .set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(res.status).toBe(200);
+  expect(Array.isArray(res.body)).toBe(true);
+} );  
+
 
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
