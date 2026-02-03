@@ -195,6 +195,17 @@ test('add menu item', async () => {
   expect(found).toMatchObject({ title: newItem.title, description: newItem.description, price: newItem.price });
 });
 
+test('create order', async () => {
+  const orderReq = { franchiseId: 1, storeId: 1, items: [{ menuId: 1, description: 'Veggie', price: 0.05 }] };
+  const res = await request(app)    
+    .post('/api/order')
+    .set('Authorization', `Bearer ${testUserAuthToken}`)
+    .send(orderReq);
+  expect(res.status).toBe(200);
+  expect(res.body.order).toMatchObject(orderReq);
+  expectValidJwt(res.body.jwt);
+});
+
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
 }
