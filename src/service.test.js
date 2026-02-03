@@ -251,6 +251,20 @@ test('get user unauthorized', async () => {
   expect(res.body).toEqual({ message: 'unauthorized' });
 } );
 
+test('get user', async () => {
+  const res = await request(app)
+    .get('/api/user/me')  
+
+    .set('Authorization', `Bearer ${testUserAuthToken}`); 
+  expect(res.status).toBe(200);
+  expect(res.body).toHaveProperty('id');  
+  expect(res.body).toHaveProperty('name');  
+  expect(res.body).toHaveProperty('email');  
+  expect(res.body).toHaveProperty('roles');  
+} );  
+
+
+
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
 }
