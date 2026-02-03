@@ -172,7 +172,13 @@ test('get menu', async () => {
   expect(Array.isArray(res.body)).toBe(true);
 });
 
-
+test('add menu item unauthorized', async () => {
+  const res = await request(app)
+    .put('/api/order/menu')
+    .send({ menuId: 999, description: 'Unauthorized Item', price: 9.99 });
+  expect(res.status).toBe(401);
+  expect(res.body).toEqual({ message: 'unauthorized' });
+});
 
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
