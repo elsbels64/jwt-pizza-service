@@ -263,6 +263,28 @@ test('get user', async () => {
   expect(res.body).toHaveProperty('roles');  
 } );  
 
+test('delete user', async () => {
+  const newUser = { name: 'delete me', email: `deleteme${randomName()}@test.com`, password: 'deletepass' };
+  const registerRes = await request(app).post('/api/auth').send(newUser);
+  expect(registerRes.status).toBe(200);
+  const authToken = registerRes.body.token;
+  const userId = registerRes.body.user.id;
+
+  const logoutRes = await request(app)
+    .delete('/api/auth')
+    .set('Authorization', `Bearer ${authToken}`);
+  expect(logoutRes.status).toBe(200);
+  expect(logoutRes.body).toEqual({ message: 'logout successful' });
+
+  const adminUser = await createAdminUser();
+  const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
+  const adminAuthToken = adminLoginRes.body.token;
+  const res = await request(app)
+    .delete(`/api/user/${userId}`)
+    .set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(res.status).toBe(200);
+  expect(res.body).toEqual({ message: 'user deleted' });
+} );  
 
 
 function expectValidJwt(potentialJwt) {
