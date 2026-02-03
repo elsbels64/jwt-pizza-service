@@ -180,6 +180,21 @@ test('add menu item unauthorized', async () => {
   expect(res.body).toEqual({ message: 'unauthorized' });
 });
 
+test('add menu item', async () => {
+  const adminUser = await createAdminUser();
+  const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
+  const adminAuthToken = adminLoginRes.body.token;      
+  const newItem = { menuId: Math.floor(Math.random() * 10000) + 1000, description: 'New Test Item', price: 4.99 };
+  const res = await request(app)
+    .put('/api/order/menu')
+    .set('Authorization', `Bearer ${adminAuthToken}`)
+    .send(newItem);
+  expect(res.status).toBe(200);
+  const found = res.body.find((item) => item.menuId === newItem.menuId);
+  expect(found).toBeDefined();
+  expect(found).toMatchObject(newItem);
+});
+
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
 }
