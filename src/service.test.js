@@ -103,6 +103,18 @@ test('get franchise', async () => {
   expect(found).toMatchObject({ name: created.name });
 }); 
 
+test('get user franchises', async () => {
+  const { created, admin, adminAuthToken } = await createFranchise({ name: `User Franchise ${randomName()}` });
+  const res = await request(app)    
+    .get(`/api/franchise/${admin.id}`)
+    .set('Authorization', `Bearer ${adminAuthToken}`); 
+  expect(res.status).toBe(200);
+  expect(Array.isArray(res.body)).toBe(true);
+  const found = res.body.find((f) => f.id === created.id);
+  expect(found).toBeDefined();
+  expect(found).toMatchObject({ name: created.name });
+});
+
 
 
 function expectValidJwt(potentialJwt) {
