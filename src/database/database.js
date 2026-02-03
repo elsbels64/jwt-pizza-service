@@ -127,6 +127,23 @@ class DB {
     }
   }
 
+  // List users with their roles
+  async listUsers(offset = 0, limit = 10) {
+    const connection = await this.getConnection();
+    try {
+      const off = Number(offset) || 0;
+      const lim = Math.max(1, Number(limit) || 10);
+      const users = await this.query(connection, `SELECT id, name, email FROM user ORDER BY id LIMIT ${off}, ${lim}`);
+      for (const u of users) {
+        const roles = await this.query(connection, `SELECT role, objectId FROM userRole WHERE userId=?`, [u.id]);
+        u.roles = roles.map((r) => ({ role: r.role, objectId: r.objectId || undefined }));
+      }
+      return users;
+    } finally {
+      connection.end();
+    }
+  }
+
   async isLoggedIn(token) {
     token = this.getTokenSignature(token);
     const connection = await this.getConnection();

@@ -80,15 +80,9 @@ userRouter.get(
     const limit = Math.min(100, Number(req.query.limit) || 10);
     const offset = (page - 1) * limit;
 
-    // DB.listUsers is expected to return an array of users for the given offset/limit.
-    // Adjust the DB call if your database API differs.
-    const result = await DB.listUsers(offset, limit);
-    const users = Array.isArray(result) ? result : (result && result.users) || [];
-
-    // Determine "more" flag: if the returned array length equals the limit, there may be more.
-    const more = users.length === limit;
-
-    res.json({ users, more });
+    // Return array of users (with roles) for compatibility with tests
+    const users = await DB.listUsers(offset, limit);
+    res.json(users);
   })
 );
 
