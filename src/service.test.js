@@ -227,6 +227,15 @@ test('get orders unauthorized', async () => {
   expect(res.body).toEqual({ message: 'unauthorized' });
 } );
 
+test('create order unauthorized', async () => {
+  const orderReq = { franchiseId: 1, storeId: 1, items: [{ menuId: 1, description: 'Veggie', price: 0.05 }] };
+  const res = await request(app)
+    .post('/api/order')
+    .send(orderReq);
+  expect(res.status).toBe(401);
+  expect(res.body).toEqual({ message: 'unauthorized' });
+} );
+
 
 
 function expectValidJwt(potentialJwt) {
