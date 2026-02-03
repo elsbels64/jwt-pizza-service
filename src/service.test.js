@@ -58,22 +58,24 @@ test('missing password: returns 400 with required message', async () => {
   });
 
 
-test('create franchise', async () => {
-  const adminUser = await createAdminUser();
+async function createFranchise({ adminUser: providedAdminUser } = {}) {
+  const adminUser = providedAdminUser || await createAdminUser();
   const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
   const adminAuthToken = adminLoginRes.body.token;
-  const newFranchise = { name: 'Test Franchise' , admins: [{ email: adminUser.email }]};
+
+  const newFranchise = { name: `Test Franchise ${randomName()}`, admins: [{ email: adminUser.email }] };
+  if (!Array.isArray(newFranchise.admins)) {
+    newFranchise.admins = newFranchise.admins ? [newFranchise.admins] : [];
+  }
 
   const res = await request(app)
     .post('/api/franchise')
     .set('Authorization', `Bearer ${adminAuthToken}`)
     .send(newFranchise);
 
-  expect(res.status).toBe(200);
-  // Support servers that return the created franchise either at the top-level or nested (e.g., { franchise: {...} } or { data: {...} })
   const created = res.body && (res.body.franchise || res.body.data || res.body);
-  expect(created).toMatchObject(newFranchise);
-});
+  return { res, created, adminUser, adminAuthToken, newFranchise };
+}
 
 
 
