@@ -45,7 +45,13 @@ test('login', async () => {
   expect(loginRes.body.user).toMatchObject(expectedUser);
 });
 
-
+test('logout', async () => {
+  const res = await request(app)
+    .delete('/api/auth')  
+    .set('Authorization', `Bearer ${testUserAuthToken}`);
+  expect(res.status).toBe(200);
+  expect(res.body).toEqual({ message: 'logout successful' });
+});
 
 test('missing password: returns 400 with required message', async () => {
     const res = await request(app).post('/api/auth').send({ name: 'no pass', email: 'nop@test.com' });
