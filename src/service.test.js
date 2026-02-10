@@ -9,6 +9,10 @@ const { Role, DB } = require('./database/database.js');
 
 const testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
 let testUserAuthToken;
+const createdUsers = [];
+const createdFranchises = [];
+const createdMenuItems = [];
+const createdOrders = [];
 
 async function createAdminUser() {
   let user = { password: 'toomanysecrets', roles: [{ role: Role.Admin }] };
@@ -16,6 +20,7 @@ async function createAdminUser() {
   user.email = user.name + '@admin.com';
 
   user = await DB.addUser(user);
+  if (user && user.id) createdUsers.push(user.id);
   return { ...user, password: 'toomanysecrets' };
 }
 
@@ -35,6 +40,7 @@ async function createFranchise(franchise = null, adminUser = null) {
     .send(usedFranchise);
 
   const created = res.body && (res.body.franchise || res.body.data || res.body);
+  if (created && created.id) createdFranchises.push(created.id);
   return { res, created, usedFranchise, admin, adminAuthToken };
 }
 
@@ -42,6 +48,7 @@ beforeAll(async () => {
   testUser.email = Math.random().toString(36).substring(2, 12) + '@test.com';
   const registerRes = await request(app).post('/api/auth').send(testUser);
   testUserAuthToken = registerRes.body.token;
+  if (registerRes.body && registerRes.body.user && registerRes.body.user.id) createdUsers.push(registerRes.body.user.id);
 });
 
 test('login', async () => {
@@ -59,6 +66,7 @@ test('register', async () => {
   const res = await request(app).post('/api/auth').send(newUser);
   expect(res.status).toBe(200);
   expectValidJwt(res.body.token);
+  if (res.body && res.body.user && res.body.user.id) createdUsers.push(res.body.user.id);
 
 });
 
@@ -223,17 +231,84 @@ test('add menu item', async () => {
   const found = res.body.find((item) => item.title === newItem.title);
   expect(found).toBeDefined();
   expect(found).toMatchObject({ title: newItem.title, description: newItem.description, price: newItem.price });
+  if (found && found.id) createdMenuItems.push(found.id);
 });
 
 test('create order', async () => {
-  const orderReq = { franchiseId: 1, storeId: 1, items: [{ menuId: 1, description: 'Veggie', price: 0.05 }] };
-  const res = await request(app)    
+  // create franchise + store
+  const { created: franchise, adminAuthToken } = await createFranchise({ name: `Store Franchise ${randomName()}` });
+  const storeRes = await request(app)
+    .post(`/api/franchise/${franchise.id}/store`)
+    .set('Authorization', `Bearer ${adminAuthToken}`)
+    .send({ franchiseId: franchise.id, name: `Store ${randomName()}` });
+  const store = storeRes.body;
+
+  // create a menu item
+  const adminUser = await createAdminUser();
+  const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
+  const adminToken = adminLoginRes.body.token;
+  const newItem = { title: `New Test Item ${randomName()}`, description: `Delicious ${randomName()}`, image: 'pizza-test.png', price: 0.05 };
+  const menuRes = await request(app)
+    .put('/api/order/menu')
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send(newItem);
+  const found = Array.isArray(menuRes.body) ? menuRes.body.find((i) => i.title === newItem.title) : undefined;
+  const menuId = found && found.id;
+  if (menuId) createdMenuItems.push(menuId);
+
+  // place the order using created IDs
+  const orderReq = { franchiseId: franchise.id, storeId: store.id, items: [{ menuId, description: found ? found.description : newItem.description, price: found ? found.price : newItem.price }] };
+  const res = await request(app)
     .post('/api/order')
     .set('Authorization', `Bearer ${testUserAuthToken}`)
     .send(orderReq);
+
   expect(res.status).toBe(200);
   expect(res.body.order).toMatchObject(orderReq);
   expectValidJwt(res.body.jwt);
+  if (res.body && res.body.order && res.body.order.id) createdOrders.push(res.body.order.id);
+});
+
+afterAll(async () => {
+  // cleanup orders
+  if (createdOrders.length) {
+    try {
+      const conn = await DB.getConnection();
+      try {
+        await conn.execute(`DELETE FROM orderItem WHERE orderId IN (${createdOrders.join(',')})`);
+        await conn.execute(`DELETE FROM dinerOrder WHERE id IN (${createdOrders.join(',')})`);
+      } finally {
+        conn.end();
+      }
+    } catch (err) { void err; }
+  }
+
+  // cleanup menu items
+  if (createdMenuItems.length) {
+    try {
+      const conn = await DB.getConnection();
+      try {
+        await conn.execute(`DELETE FROM orderItem WHERE menuId IN (${createdMenuItems.join(',')})`);
+        await conn.execute(`DELETE FROM menu WHERE id IN (${createdMenuItems.join(',')})`);
+      } finally {
+        conn.end();
+      }
+    } catch (err) { void err; }
+  }
+
+  // cleanup franchises
+  for (const id of createdFranchises) {
+    try {
+      if (id) await DB.deleteFranchise(id);
+    } catch (err) { void err; }
+  }
+
+  // cleanup users
+  for (const id of createdUsers) {
+    try {
+      if (id) await DB.deleteUser(id);
+    } catch (err) { void err; }
+  }
 });
 
 test('get orders', async () => {
