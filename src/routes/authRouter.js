@@ -31,21 +31,6 @@ authRouter.docs = [
   },
 ];
 
-async function setAuthUser(req, res, next) {
-  const token = readAuthToken(req);
-  if (token) {
-    try {
-      if (await DB.isLoggedIn(token)) {
-        // Check the database to make sure the token is valid.
-        req.user = jwt.verify(token, config.jwtSecret);
-        req.user.isRole = (role) => !!req.user.roles.find((r) => r.role === role);
-      }
-    } catch {
-      req.user = null;
-    }
-  }
-  next();
-}
 
 // Authenticate token
 authRouter.authenticateToken = (req, res, next) => {
@@ -89,6 +74,22 @@ authRouter.delete(
     res.json({ message: 'logout successful' });
   })
 );
+
+async function setAuthUser(req, res, next) {
+  const token = readAuthToken(req);
+  if (token) {
+    try {
+      if (await DB.isLoggedIn(token)) {
+        // Check the database to make sure the token is valid.
+        req.user = jwt.verify(token, config.jwtSecret);
+        req.user.isRole = (role) => !!req.user.roles.find((r) => r.role === role);
+      }
+    } catch {
+      req.user = null;
+    }
+  }
+  next();
+}
 
 async function setAuth(user) {
   const token = jwt.sign(user, config.jwtSecret);
