@@ -122,6 +122,25 @@ test('list users pagination', async () => {
   }
 });
 
+test('list users name filter', async () => {
+  const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
+  const adminAuthToken = adminLoginRes.body.token;
+
+  // wildcard should return results
+  const res = await request(app)
+    .get('/api/user/?name=*')
+    .set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(res.status).toBe(200);
+  expect(res.body.length).toBeGreaterThan(0);
+
+  // nonexistent name should return empty
+  const res2 = await request(app)
+    .get('/api/user/?name=nonexistentxyz')
+    .set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(res2.status).toBe(200);
+  expect(res2.body.length).toBe(0);
+});
+
 async function registerUser(service) {
   const testUser = {
     name: 'pizza diner',
