@@ -123,7 +123,8 @@ test('list users pagination', async () => {
 });
 
 test('list users name filter', async () => {
-  const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
+  const adminUser = await createAdminUser();
+ const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
   const adminAuthToken = adminLoginRes.body.token;
 
   // wildcard should return results
@@ -139,6 +140,21 @@ test('list users name filter', async () => {
     .set('Authorization', `Bearer ${adminAuthToken}`);
   expect(res2.status).toBe(200);
   expect(res2.body.length).toBe(0);
+});
+
+test('list users name filter specific', async () => {
+  const adminUser = await createAdminUser();
+ const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
+  const adminAuthToken = adminLoginRes.body.token;
+
+  // search for a name we know exists
+  const res = await request(app)
+    .get(`/api/user/?name=${adminUser.name}`)
+    .set('Authorization', `Bearer ${adminAuthToken}`);
+
+  expect(res.status).toBe(200);
+  expect(res.body.length).toBe(1);
+  expect(res.body[0].name).toBe(adminUser.name);
 });
 
 async function registerUser(service) {
