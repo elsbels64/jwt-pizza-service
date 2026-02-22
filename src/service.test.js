@@ -102,13 +102,24 @@ test('list users pagination', async () => {
  const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
   const adminAuthToken = adminLoginRes.body.token;
 
-  let res = await request(app)
+  const res = await request(app)
     .get('/api/user/?page=1&limit=2')
     .set('Authorization', `Bearer ${adminAuthToken}`);
 
   expect(res.status).toBe(200);
   expect(Array.isArray(res.body)).toBe(true);
   expect(res.body.length).toBeLessThanOrEqual(2);
+  console.log('Page 1 response:', res.status, res.body);
+  const res2 = await request(app)
+    .get('/api/user/?page=2&limit=2')
+    .set('Authorization', `Bearer ${adminAuthToken}`);
+  console.log('Page 2 response:', res2.status, res2.body);
+  expect(res2.status).toBe(200);
+  expect(Array.isArray(res2.body)).toBe(true);
+  expect(res2.body.length).toBeLessThanOrEqual(2);
+  if (res.body.length > 0 && res2.body.length > 0) {
+    expect(res.body[0].id).not.toBe(res2.body[0].id);
+  }
 });
 
 async function registerUser(service) {
