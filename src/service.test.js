@@ -425,14 +425,15 @@ test('list users unauthorized', async () => {
 test('list users', async () => {
   const adminUser = await createAdminUser();
   const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
-  const adminAuthToken = adminLoginRes.body.token;  
-  const res = await request(app)
+  const adminAuthToken = adminLoginRes.body.token;
 
-    .get('/api/user/')    
+  const res = await request(app)
+    .get('/api/user/')
     .set('Authorization', `Bearer ${adminAuthToken}`);
+
   expect(res.status).toBe(200);
   expect(Array.isArray(res.body)).toBe(true);
-} );  
+});
 
 test('update user', async () => {
   const newUser = { name: 'update me', email: `updateme${randomName()}@test.com`, password: 'updatepass' };
