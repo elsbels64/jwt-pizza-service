@@ -78,13 +78,37 @@ test('list users unauthorized', async () => {
 });
 
 test('list users', async () => {
-  const [user, userToken] = await registerUser(request(app));
-  expect(user).toBeDefined();
-  const listUsersRes = await request(app)
-    .get('/api/user')
-    .set('Authorization', 'Bearer ' + userToken);
-  console.log(listUsersRes.status, listUsersRes.body);
-  expect(listUsersRes.status).toBe(200);
+  const adminUser = await createAdminUser();
+  //console.log('adminUser:', adminUser);
+
+  const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
+ // console.log('login response:', adminLoginRes.status, adminLoginRes.body);
+
+  const adminAuthToken = adminLoginRes.body.token;
+ // console.log('token:', adminAuthToken);
+
+  const res = await request(app)
+    .get('/api/user/')
+    .set('Authorization', `Bearer ${adminAuthToken}`);
+
+  //console.log(res.status, res.body);
+
+  expect(res.status).toBe(200);
+  expect(Array.isArray(res.body)).toBe(true);
+});
+
+test('list users pagination', async () => {
+  const adminUser = await createAdminUser();
+ const adminLoginRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
+  const adminAuthToken = adminLoginRes.body.token;
+
+  let res = await request(app)
+    .get('/api/user/?page=1&limit=2')
+    .set('Authorization', `Bearer ${adminAuthToken}`);
+
+  expect(res.status).toBe(200);
+  expect(Array.isArray(res.body)).toBe(true);
+  expect(res.body.length).toBeLessThanOrEqual(2);
 });
 
 async function registerUser(service) {
