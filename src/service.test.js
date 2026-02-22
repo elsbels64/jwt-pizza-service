@@ -70,6 +70,11 @@ test('register', async () => {
 
 });
 
+test('list users', async () => {
+  const listUsersRes = await request(app).get('/api/user');
+  expect(listUsersRes.status).toBe(200);
+});
+
 test('logout', async () => {
   const newUser = { name: 'new user', email: 'email@email.com', password: 'newpass' };
   let res = await request(app).post('/api/auth').send(newUser);
