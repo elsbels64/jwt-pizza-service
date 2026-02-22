@@ -21,9 +21,11 @@ async function createAdminUser() {
 
   user = await DB.addUser(user);
   if (user && user.id) createdUsers.push(user.id);
-  return { ...user, password: 'toomanysecrets' };
-}
 
+  // Actually log them in so the token gets stored in the auth table
+  const loginRes = await request(app).put('/api/auth').send({ email: user.email, password: 'toomanysecrets' });
+  return { ...loginRes.body.user, password: 'toomanysecrets' };
+}
 async function createFranchise(franchise = null, adminUser = null) {
   const admin = adminUser || await createAdminUser();
   const adminLoginRes = await request(app).put('/api/auth').send({ email: admin.email, password: admin.password });
@@ -81,6 +83,7 @@ test('list users', async () => {
   const listUsersRes = await request(app)
     .get('/api/user')
     .set('Authorization', 'Bearer ' + userToken);
+  console.log(listUsersRes.status, listUsersRes.body);
   expect(listUsersRes.status).toBe(200);
 });
 
