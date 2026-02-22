@@ -485,6 +485,13 @@ test('delete user', async () => {
     .set('Authorization', `Bearer ${adminAuthToken}`);
   expect(res.status).toBe(200);
   expect(res.body).toEqual({ message: 'user deleted' });
+
+  // Verify user is actually deleted
+  const getRes = await request(app)
+    .get('/api/user/me')
+    .set('Authorization', `Bearer ${authToken}`);
+  expect(getRes.status).toBe(401);
+  expect(getRes.body).toEqual({ message: 'unauthorized' }); 
 } );  
 
 test('list users unauthorized', async () => {
@@ -523,6 +530,23 @@ test('update user', async () => {
   expect(res.body.user).toMatchObject({ id: userId, name: updatedInfo.name, email: updatedInfo.email });
   expectValidJwt(res.body.token); 
 } );  
+
+// add this if it turns out that we are only sending over name at some point
+// test('update user only name', async () => {
+//   const newUser = { name: 'update name only', email: `updatename${randomName()}@test.com`, password: 'updatepass' };
+//   const registerRes = await request(app).post('/api/auth').send(newUser);
+//   expect(registerRes.status).toBe(200);
+//   const authToken = registerRes.body.token;   
+//   const userId = registerRes.body.user.id;
+//   const updatedInfo = { name: 'updated name only' };
+//   const res = await request(app)
+//     .put(`/api/user/${userId}`)     
+//     .set('Authorization', `Bearer ${authToken}`)
+//     .send(updatedInfo);
+//   expect(res.status).toBe(200);
+//   expect(res.body.user).toMatchObject({ id: userId, name: updatedInfo.name, email: newUser.email });
+//   expectValidJwt(res.body.token);
+// } );
 
 test('update user unauthorized', async () => {
   const res = await request(app)
