@@ -53,8 +53,13 @@ userRouter.get(
 // listUsers
 userRouter.get(
   '/',
+  authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    res.json({});
+    if (!req.user.isRole(Role.Admin)) {
+      return res.status(403).json({ message: 'unauthorized' });
+    }
+    const users = await DB.listUsers();
+    res.json(users);
   })
 );
 
@@ -88,26 +93,6 @@ userRouter.delete(
     }
     await DB.deleteUser(userId);
     res.json({ message: 'user deleted' });
-  })
-);
-
-// listUsers
-userRouter.get(
-  '/',
-  authRouter.authenticateToken,
-  asyncHandler(async (req, res) => {
-    const requester = req.user;
-    if (!requester.isRole(Role.Admin)) {
-      return res.status(403).json({ message: 'unauthorized' });
-    }
-
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(100, Number(req.query.limit) || 10);
-    const offset = (page - 1) * limit;
-
-    // Return array of users (with roles) for compatibility with tests
-    const users = await DB.listUsers(offset, limit);
-    res.json(users);
   })
 );
 
