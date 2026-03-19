@@ -197,12 +197,17 @@ function sendMetricToGrafana(metrics) {
     ],
   };
 
+console.log('Sending metrics to:', config.metrics.endpointUrl);
+console.log('account  id:', config.metrics.accountId);
+console.log('api key:', config.metrics.apiKey);
+
   fetch(`${config.metrics.endpointUrl}`, {
     method: 'POST',
     body: JSON.stringify(body),
     headers: { Authorization: `Bearer ${config.metrics.accountId}:${config.metrics.apiKey}`, 'Content-Type': 'application/json' },
   })
     .then((response) => {
+        console.log('Grafana response status:', response.status);
       if (!response.ok) {
         throw new Error(`HTTP status: ${response.status}`);
       }
