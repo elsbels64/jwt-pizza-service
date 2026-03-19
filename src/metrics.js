@@ -41,7 +41,7 @@ function pizzaPurchase(success, latency, price) {
   }else{
     pizzasFailed++;
   }
-  pizzaLatencies.push(latency);
+  pizzaLatencies.push({ value: latency, time: Date.now() });
 }
 
 function authAttempt(success) {
@@ -62,7 +62,7 @@ function requestTracker(req, res, next) {
 
   const start = Date.now();
   res.on('finish', () => {
-    serviceLatencies.push(Date.now() - start);
+    serviceLatencies.push({ value: Date.now() - start, time: Date.now() });
   });
 
   if (req.user) {
@@ -113,11 +113,11 @@ setInterval(() => {
         name: 'service_latency',
         unit: 'ms',
         gauge: {
-        dataPoints: serviceLatencies.map((latency) => ({
-            asDouble: latency,
-            timeUnixNano: Date.now() * 1000000,
-            attributes: [{ key: 'source', value: { stringValue: config.metrics.source } }],
-        })),
+            dataPoints: serviceLatencies.map((entry) => ({
+                asDouble: entry.value,
+                timeUnixNano: entry.time * 1000000,
+                attributes: [{ key: 'source', value: { stringValue: config.metrics.source } }],
+            })),
         },
     };
     metrics.push(metric);
@@ -129,9 +129,9 @@ setInterval(() => {
         name: 'pizza_latency',
         unit: 'ms',
         gauge: {
-        dataPoints: pizzaLatencies.map((latency) => ({
-            asDouble: latency,
-            timeUnixNano: Date.now() * 1000000,
+        dataPoints: pizzaLatencies.map((entry) => ({
+            asDouble: entry.value,
+            timeUnixNano: entry.time * 1000000,
             attributes: [{ key: 'source', value: { stringValue: config.metrics.source } }],
         })),
         },
