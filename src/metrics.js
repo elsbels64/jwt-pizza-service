@@ -200,6 +200,7 @@ function sendMetricToGrafana(metrics) {
 console.log('Sending metrics to:', config.metrics.endpointUrl);
 console.log('account  id:', config.metrics.accountId);
 console.log('api key:', config.metrics.apiKey);
+console.log('source:', config.metrics.source);
 
   fetch(`${config.metrics.endpointUrl}`, {
     method: 'POST',
