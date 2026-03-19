@@ -1,5 +1,3 @@
-const os = require('os');
-
 // Mock config before requiring metrics
 jest.mock('./config', () => ({
   source: 'test-source',
