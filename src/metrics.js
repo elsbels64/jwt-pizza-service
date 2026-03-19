@@ -150,7 +150,7 @@ setInterval(() => {
 }, 10000);
 
 function createMetric(metricName, metricValue, metricUnit, metricType, valueType, attributes) {
-  attributes = { ...attributes, source: config.source };
+  attributes = { ...attributes, source: config.metrics.source };
 
   const metric = {
     name: metricName,
