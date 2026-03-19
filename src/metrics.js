@@ -7,6 +7,10 @@ let greetingChangedCount = 0;
 const os = require('os');
 // Add these at the top with your other variables
 
+let pizzasSold = 0;
+let pizzasFailed = 0;
+let revenue = 0;
+let pizzaLatency = 0;
 
 
 function getCpuUsagePercentage() {
@@ -24,8 +28,14 @@ function getMemoryUsagePercentage() {
 
 
 // Function to track when the greeting is changed
-function greetingChanged() {
-  greetingChangedCount++;
+function pizzaPurchase(success, latency, price) {
+  if(success){
+    pizzasSold++;
+    revenue += price;
+  }else{
+    pizzasFailed++;
+  }
+  pizzaLatency = latency;
 }
 
 // Middleware to track requests
@@ -92,10 +102,10 @@ function sendMetricToGrafana(metrics) {
     ],
   };
 
-  fetch(`${config.endpointUrl}`, {
+  fetch(`${config.metrics.endpointUrl}`, {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { Authorization: `Bearer ${config.accountId}:${config.apiKey}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${config.metrics.accountId}:${config.metrics.apiKey}`, 'Content-Type': 'application/json' },
   })
     .then((response) => {
       if (!response.ok) {
