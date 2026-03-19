@@ -29,31 +29,31 @@ login() {
 }
 
 # Simulate a user requesting the menu every 3 seconds
-while true; do
-  result=$(execute_curl $host/api/order/menu)
-  echo "Requesting menu..." $result
-  sleep 3
-done &
-pid1=$!
+# while true; do
+#   result=$(execute_curl $host/api/order/menu)
+#   echo "Requesting menu..." $result
+#   sleep 3
+# done &
+# pid1=$!
 
-# Simulate a user with an invalid email and password every 25 seconds
-while true; do
-  result=$(execute_curl "-X PUT \"$host/api/auth\" -d '{\"email\":\"unknown@jwt.com\", \"password\":\"bad\"}' -H 'Content-Type: application/json'")
-  echo "Logging in with invalid credentials..." $result
-  sleep 25
-done &
-pid2=$!
+# # Simulate a user with an invalid email and password every 25 seconds
+# while true; do
+#   result=$(execute_curl "-X PUT \"$host/api/auth\" -d '{\"email\":\"unknown@jwt.com\", \"password\":\"bad\"}' -H 'Content-Type: application/json'")
+#   echo "Logging in with invalid credentials..." $result
+#   sleep 25
+# done &
+# pid2=$!
 
-# Simulate a franchisee logging in every two minutes
-while true; do
-  token=$(login "f@jwt.com" "franchisee")
-  echo "Login franchisee..." $( [ -z "$token" ] && echo "false" || echo "true" )
-  sleep 110
-  result=$(execute_curl "-X DELETE $host/api/auth -H \"Authorization: Bearer $token\"")
-  echo "Logging out franchisee..." $result
-  sleep 10
-done &
-pid3=$!
+# # Simulate a franchisee logging in every two minutes
+# while true; do
+#   token=$(login "f@jwt.com" "franchisee")
+#   echo "Login franchisee..." $( [ -z "$token" ] && echo "false" || echo "true" )
+#   sleep 110
+#   result=$(execute_curl "-X DELETE $host/api/auth -H \"Authorization: Bearer $token\"")
+#   echo "Logging out franchisee..." $result
+#   sleep 10
+# done &
+# pid3=$!
 
 # Simulate a diner ordering a pizza every 50 seconds
 while true; do
