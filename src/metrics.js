@@ -2,6 +2,7 @@ const config = require('./config');
 
 // Metrics stored in memory
 const requests = {};
+const methods = {};
 let greetingChangedCount = 0;
 
 const os = require('os');
@@ -42,6 +43,9 @@ function pizzaPurchase(success, latency, price) {
 function requestTracker(req, res, next) {
   const endpoint = `[${req.method}] ${req.path}`;
   requests[endpoint] = (requests[endpoint] || 0) + 1;
+
+  const method = req.method;
+  methods[method] = (methods[method] || 0) + 1;
   next();
 }
 
@@ -50,6 +54,10 @@ setInterval(() => {
   const metrics = [];
   Object.keys(requests).forEach((endpoint) => {
     metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', { endpoint }));
+  });
+
+  Object.keys(requests).forEach((method) => {
+    metrics.push(createMetric('requests', methods[method], '1', 'sum', 'asInt', { method: method }));
   });
 
   metrics.push(createMetric('pizzas_sold', pizzasSold, '1', 'sum', 'asInt', {}));
