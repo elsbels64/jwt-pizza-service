@@ -3,7 +3,6 @@ const config = require('./config');
 // Metrics stored in memory
 const requests = {};
 const methods = {};
-let greetingChangedCount = 0;
 
 const os = require('os');
 // Add these at the top with your other variables
@@ -12,6 +11,7 @@ let pizzasSold = 0;
 let pizzasFailed = 0;
 let revenue = 0;
 let pizzaLatency = 0;
+let serviceLatency = 0;
 let authSuccess = 0;
 let authFail = 0;
 
@@ -55,6 +55,12 @@ function requestTracker(req, res, next) {
 
   const method = req.method;
   methods[method] = (methods[method] || 0) + 1;
+
+  const start = Date.now();
+  res.on('finish', () => {
+    serviceLatency = Date.now() - start;
+  });
+
   next();
 }
 
@@ -84,6 +90,9 @@ setInterval(() => {
   metrics.push(createMetric('pizza_failures', pizzasFailed, '1', 'sum', 'asInt', {}));
   metrics.push(createMetric('revenue', revenue, 'USD', 'sum', 'asDouble', {}));
   metrics.push(createMetric('pizza_latency', pizzaLatency, 'ms', 'gauge', 'asDouble', {}));
+
+  //service latency
+  metrics.push(createMetric('service_latency', serviceLatency, 'ms', 'gauge', 'asDouble', {}));
 
   sendMetricToGrafana(metrics);
 }, 10000);
