@@ -182,6 +182,9 @@ function createMetric(metricName, metricValue, metricUnit, metricType, valueType
 }
 
 function sendMetricToGrafana(metrics) {
+    if (!config.metrics?.endpointUrl || !config.metrics?.apiKey || !config.metrics?.accountId) {
+    return; // skip if credentials not configured
+  }
   const body = {
     resourceMetrics: [
       {
