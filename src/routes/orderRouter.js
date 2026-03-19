@@ -6,6 +6,8 @@ const { asyncHandler, StatusCodeError } = require('../endpointHelper.js');
 
 const orderRouter = express.Router();
 
+const metrics = require('./metrics');
+
 orderRouter.docs = [
   {
     method: 'GET',
@@ -92,5 +94,15 @@ orderRouter.post(
     }
   })
 );
+
+orderRouter.post('/', (req, res) => {
+    if (purchase pizza from factory) {
+      metrics.pizzaPurchase(success, latency, price);
+    } else {
+      metrics.pizzaPurchase(failure, latency, 0);
+    }
+  }
+);
+
 
 module.exports = orderRouter;
