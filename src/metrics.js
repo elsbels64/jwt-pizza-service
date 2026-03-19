@@ -116,7 +116,10 @@ setInterval(() => {
             dataPoints: serviceLatencies.map((entry) => ({
                 asDouble: entry.value,
                 timeUnixNano: entry.time * 1000000,
-                attributes: [{ key: 'source', value: { stringValue: config.metrics.source } }],
+                attributes: [
+                    { key: 'source', value: { stringValue: config.metrics.source } },
+                    { key: 'type', value: { stringValue: 'service' } },
+                    ],
             })),
         },
     };
@@ -132,7 +135,10 @@ setInterval(() => {
         dataPoints: pizzaLatencies.map((entry) => ({
             asDouble: entry.value,
             timeUnixNano: entry.time * 1000000,
-            attributes: [{ key: 'source', value: { stringValue: config.metrics.source } }],
+            attributes: [
+                { key: 'source', value: { stringValue: config.metrics.source } },
+                { key: 'type', value: { stringValue: 'pizza' } },
+                ],
         })),
         },
     };
