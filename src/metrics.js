@@ -52,7 +52,10 @@ setInterval(() => {
     metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', { endpoint }));
   });
 
-  metrics.push(createMetric('greetingChange', greetingChangedCount, '1', 'sum', 'asInt', {}));
+  metrics.push(createMetric('pizzas_sold', pizzasSold, '1', 'sum', 'asInt', {}));
+  metrics.push(createMetric('pizza_failures', pizzasFailed, '1', 'sum', 'asInt', {}));
+  metrics.push(createMetric('revenue', revenue, 'USD', 'sum', 'asDouble', {}));
+  metrics.push(createMetric('pizza_latency', pizzaLatency, 'ms', 'gauge', 'asDouble', {}));
 
   sendMetricToGrafana(metrics);
 }, 10000);
@@ -117,4 +120,4 @@ function sendMetricToGrafana(metrics) {
     });
 }
 
-module.exports = { requestTracker};
+module.exports = { requestTracker, pizzaPurchase};
