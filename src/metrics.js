@@ -10,8 +10,8 @@ const os = require('os');
 let pizzasSold = 0;
 let pizzasFailed = 0;
 let revenue = 0;
-let pizzaLatency = 0;
-let serviceLatency = 0;
+const serviceLatencies = [];
+const pizzaLatencies = [];
 let authSuccess = 0;
 let authFail = 0;
 
@@ -37,7 +37,7 @@ function pizzaPurchase(success, latency, price) {
   }else{
     pizzasFailed++;
   }
-  pizzaLatency = latency;
+  pizzaLatencies.push(latency);
 }
 
 function authAttempt(success) {
@@ -58,7 +58,7 @@ function requestTracker(req, res, next) {
 
   const start = Date.now();
   res.on('finish', () => {
-    serviceLatency = Date.now() - start;
+    serviceLatencies.push(Date.now() - start);
   });
 
   next();
@@ -89,10 +89,39 @@ setInterval(() => {
   metrics.push(createMetric('pizzas_sold', pizzasSold, '1', 'sum', 'asInt', {}));
   metrics.push(createMetric('pizza_failures', pizzasFailed, '1', 'sum', 'asInt', {}));
   metrics.push(createMetric('revenue', revenue, 'USD', 'sum', 'asDouble', {}));
-  metrics.push(createMetric('pizza_latency', pizzaLatency, 'ms', 'gauge', 'asDouble', {}));
+  
+  //latencies
+  if (serviceLatencies.length > 0) {
+    const metric = {
+        name: 'service_latency',
+        unit: 'ms',
+        gauge: {
+        dataPoints: serviceLatencies.map((latency) => ({
+            asDouble: latency,
+            timeUnixNano: Date.now() * 1000000,
+            attributes: [{ key: 'source', value: { stringValue: config.metrics.source } }],
+        })),
+        },
+    };
+    metrics.push(metric);
+    serviceLatencies.length = 0;
+    }
 
-  //service latency
-  metrics.push(createMetric('service_latency', serviceLatency, 'ms', 'gauge', 'asDouble', {}));
+    if (pizzaLatencies.length > 0) {
+    const metric = {
+        name: 'pizza_latency',
+        unit: 'ms',
+        gauge: {
+        dataPoints: pizzaLatencies.map((latency) => ({
+            asDouble: latency,
+            timeUnixNano: Date.now() * 1000000,
+            attributes: [{ key: 'source', value: { stringValue: config.metrics.source } }],
+        })),
+        },
+    };
+    metrics.push(metric);
+    pizzaLatencies.length = 0;
+    }
 
   sendMetricToGrafana(metrics);
 }, 10000);
