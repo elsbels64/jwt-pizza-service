@@ -69,6 +69,10 @@ setInterval(() => {
     metrics.push(createMetric('requests', methods[method], '1', 'sum', 'asInt', { method: method }));
   });
 
+  //cpu and memory
+  metrics.push(createMetric('cpu', getCpuUsagePercentage(), '%', 'gauge', 'asDouble', {}));
+  metrics.push(createMetric('memory', getMemoryUsagePercentage(), '%', 'gauge', 'asDouble', {}));
+
 
   //login
   metrics.push(createMetric('auth_success', authSuccess, '1', 'sum', 'asInt', {}));
