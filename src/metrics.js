@@ -73,7 +73,7 @@ setInterval(() => {
   //login
   metrics.push(createMetric('auth_success', authSuccess, '1', 'sum', 'asInt', {}));
   metrics.push(createMetric('auth_fail', authFail, '1', 'sum', 'asInt', {}));
-  
+
 
   //pizza selling
   metrics.push(createMetric('pizzas_sold', pizzasSold, '1', 'sum', 'asInt', {}));
@@ -144,4 +144,4 @@ function sendMetricToGrafana(metrics) {
     });
 }
 
-module.exports = { requestTracker, pizzaPurchase};
+module.exports = { requestTracker, pizzaPurchase, authAttempt};
