@@ -12,7 +12,8 @@ let pizzasSold = 0;
 let pizzasFailed = 0;
 let revenue = 0;
 let pizzaLatency = 0;
-
+let authSuccess = 0;
+let authFail = 0;
 
 function getCpuUsagePercentage() {
   const cpuUsage = os.loadavg()[0] / os.cpus().length;
@@ -39,6 +40,14 @@ function pizzaPurchase(success, latency, price) {
   pizzaLatency = latency;
 }
 
+function authAttempt(success) {
+  if (success) {
+    authSuccess++;
+  } else {
+    authFail++;
+  }
+}
+
 // Middleware to track requests
 function requestTracker(req, res, next) {
   const endpoint = `[${req.method}] ${req.path}`;
@@ -56,10 +65,17 @@ setInterval(() => {
     metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', { endpoint }));
   });
 
-  Object.keys(requests).forEach((method) => {
+  Object.keys(methods).forEach((method) => {
     metrics.push(createMetric('requests', methods[method], '1', 'sum', 'asInt', { method: method }));
   });
 
+
+  //login
+  metrics.push(createMetric('auth_success', authSuccess, '1', 'sum', 'asInt', {}));
+  metrics.push(createMetric('auth_fail', authFail, '1', 'sum', 'asInt', {}));
+  
+
+  //pizza selling
   metrics.push(createMetric('pizzas_sold', pizzasSold, '1', 'sum', 'asInt', {}));
   metrics.push(createMetric('pizza_failures', pizzasFailed, '1', 'sum', 'asInt', {}));
   metrics.push(createMetric('revenue', revenue, 'USD', 'sum', 'asDouble', {}));
