@@ -4,14 +4,18 @@ const config = require('./config');
 const requests = {};
 const methods = {};
 
+const activeUserMap = {};
+const ACTIVE_USER_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
+const serviceLatencies = [];
+const pizzaLatencies = [];
+
 const os = require('os');
 // Add these at the top with your other variables
 
 let pizzasSold = 0;
 let pizzasFailed = 0;
 let revenue = 0;
-const serviceLatencies = [];
-const pizzaLatencies = [];
 let authSuccess = 0;
 let authFail = 0;
 
@@ -61,6 +65,10 @@ function requestTracker(req, res, next) {
     serviceLatencies.push(Date.now() - start);
   });
 
+  if (req.user) {
+    activeUserMap[req.user.id] = Date.now();
+  }
+
   next();
 }
 
@@ -84,6 +92,15 @@ setInterval(() => {
   metrics.push(createMetric('auth_success', authSuccess, '1', 'sum', 'asInt', {}));
   metrics.push(createMetric('auth_fail', authFail, '1', 'sum', 'asInt', {}));
 
+  //active users
+  const now = Date.now();
+    Object.keys(activeUserMap).forEach((userId) => {
+    if (now - activeUserMap[userId] > ACTIVE_USER_WINDOW_MS) {
+        delete activeUserMap[userId];
+    }
+    });
+
+    metrics.push(createMetric('active_users', Object.keys(activeUserMap).length, '1', 'gauge', 'asInt', {}));
 
   //pizza selling
   metrics.push(createMetric('pizzas_sold', pizzasSold, '1', 'sum', 'asInt', {}));
