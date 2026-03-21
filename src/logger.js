@@ -10,7 +10,7 @@ class Logger {
         method: req.method,
         statusCode: res.statusCode,
         reqBody: JSON.stringify(req.body),
-        resBody: JSON.stringify(resBody),
+        resBody: resBody instanceof Buffer ? resBody.toString() : resBody,
       };
       const level = this.statusToLogLevel(res.statusCode);
       this.log(level, 'http', logData);
@@ -43,7 +43,7 @@ class Logger {
     return logData.replace(/\\"password\\":\s*\\"[^"]*\\"/g, '\\"password\\": \\"*****\\"');
   }
 
-  sendLogToGrafana(event) {
+  sendLogToGrafana(event) { // edit this later
     const body = JSON.stringify(event);
     fetch(`${config.logging.endpointUrl}`, {
       method: 'post',
