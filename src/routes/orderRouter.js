@@ -3,6 +3,7 @@ const config = require('../config.js');
 const { Role, DB } = require('../database/database.js');
 const { authRouter } = require('./authRouter.js');
 const { asyncHandler, StatusCodeError } = require('../endpointHelper.js');
+const logger = require("../logger.js");
 
 const orderRouter = express.Router();
 
@@ -89,6 +90,9 @@ orderRouter.post(
     });
     const latency = Date.now()- startTime;
     const j = await r.json();
+    // Log factory response
+    logger.log('info', 'factory', { resBody: j });
+    
     if (r.ok) {
       const price = order.items.reduce((sum, item) => sum + item.price, 0);
       metrics.pizzaPurchase(true, latency, price);
