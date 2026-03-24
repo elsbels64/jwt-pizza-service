@@ -82,6 +82,7 @@ orderRouter.post(
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
     const order = await DB.addDinerOrder(req.user, orderReq);
+    logger.log('info', 'factory', { reqBody: { diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order } });
     const startTime = Date.now();
     const r = await fetch(`${config.factory.url}/api/order`, {
       method: 'POST',
@@ -92,7 +93,7 @@ orderRouter.post(
     const j = await r.json();
     // Log factory response
     logger.log('info', 'factory', { resBody: j });
-    
+
     if (r.ok) {
       const price = order.items.reduce((sum, item) => sum + item.price, 0);
       metrics.pizzaPurchase(true, latency, price);
