@@ -45,7 +45,9 @@ class Logger {
     .replace(/\\"apiKey\\":\s*\\"[^"]*\\"/g, '\\"apiKey\\": \\"*****\\"')
     .replace(/"apiKey":\s*"[^"]*"/g, '"apiKey": "*****"')
     .replace(/\\"authorization\\":\s*\\"[^"]*\\"/g, '\\"authorization\\": \\"*****\\"')
-    .replace(/"authorization":\s*"[^"]*"/g, '"authorization": "*****"');
+    .replace(/"authorization":\s*"[^"]*"/g, '"authorization": "*****"')
+    .replace(/\\"jwt\\":\s*\\"[^"]*\\"/g, '\\"jwt\\": \\"*****\\"')
+    .replace(/"jwt":\s*"[^"]*"/g, '"jwt": "*****"');
     return logData
   }
 
