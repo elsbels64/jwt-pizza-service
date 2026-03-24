@@ -41,7 +41,9 @@ class Logger {
   sanitize(logData) {
     logData = JSON.stringify(logData)
     .replace(/\\"password\\":\s*\\"[^"]*\\"/g, '\\"password\\": \\"*****\\"')
-    .replace(/"password":\s*"[^"]*"/g, '"password": "*****"');
+    .replace(/"password":\s*"[^"]*"/g, '"password": "*****"')
+    .replace(/\\"apiKey\\":\s*\\"[^"]*\\"/g, '\\"apiKey\\": \\"*****\\"')
+    .replace(/"apiKey":\s*"[^"]*"/g, '"apiKey": "*****"');
     return logData
   }
 
