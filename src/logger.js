@@ -47,7 +47,9 @@ class Logger {
     .replace(/\\"authorization\\":\s*\\"[^"]*\\"/g, '\\"authorization\\": \\"*****\\"')
     .replace(/"authorization":\s*"[^"]*"/g, '"authorization": "*****"')
     .replace(/\\"jwt\\":\s*\\"[^"]*\\"/g, '\\"jwt\\": \\"*****\\"')
-    .replace(/"jwt":\s*"[^"]*"/g, '"jwt": "*****"');
+    .replace(/"jwt":\s*"[^"]*"/g, '"jwt": "*****"')
+    .replace(/\\"token\\":\s*\\"[^"]*\\"/g, '\\"token\\": \\"*****\\"')
+    .replace(/"token":\s*"[^"]*"/g, '"token": "*****"');
     return logData
   }
 
