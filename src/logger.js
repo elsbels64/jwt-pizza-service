@@ -64,7 +64,7 @@ class Logger {
       },
     }).then((res) => {
       if (!res.ok) console.log('Failed to send log to Grafana');
-    });
+    }).catch(() => {});
   }
 }
 module.exports = new Logger();
