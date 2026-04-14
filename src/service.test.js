@@ -46,7 +46,34 @@ async function createFranchise(franchise = null, adminUser = null) {
   return { res, created, usedFranchise, admin, adminAuthToken };
 }
 
+beforeEach(async () => {
+  try {
+    const conn = await DB.getConnection();
+    try {
+      const [rows] = await conn.execute(`SELECT id FROM user WHERE email = ?`, ['email@email.com']);
+      if (rows.length) {
+        await conn.execute(`DELETE FROM userRole WHERE userId = ?`, [rows[0].id]);
+        await conn.execute(`DELETE FROM user WHERE id = ?`, [rows[0].id]);
+      }
+    } finally {
+      conn.end();
+    }
+  } catch (err) { void err; }
+});
+
 beforeAll(async () => {
+  try {
+    const conn = await DB.getConnection();
+    try {
+      const [rows] = await conn.execute(`SELECT id FROM user WHERE email = ?`, ['email@email.com']);
+      if (rows.length) {
+        await conn.execute(`DELETE FROM userRole WHERE userId = ?`, [rows[0].id]);
+        await conn.execute(`DELETE FROM user WHERE id = ?`, [rows[0].id]);
+      }
+    } finally {
+      conn.end();
+    }
+  } catch (err) { console.error('beforeAll cleanup error:', err.message);  }
   testUser.email = Math.random().toString(36).substring(2, 12) + '@test.com';
   const registerRes = await request(app).post('/api/auth').send(testUser);
   testUserAuthToken = registerRes.body.token;
@@ -370,6 +397,20 @@ test('create order', async () => {
 });
 
 afterAll(async () => {
+  // reset new user
+  try {
+  const conn = await DB.getConnection();
+  try {
+    const [rows] = await conn.execute(`SELECT id FROM user WHERE email = ?`, ['email@email.com']);
+    if (rows.length) {
+      await conn.execute(`DELETE FROM userRole WHERE userId = ?`, [rows[0].id]);
+      await conn.execute(`DELETE FROM user WHERE id = ?`, [rows[0].id]);
+    }
+  } finally {
+    conn.end();
+  }
+  } catch (err) { void err; }
+
   // cleanup orders
   if (createdOrders.length) {
     try {

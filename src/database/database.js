@@ -35,6 +35,12 @@ class DB {
     try {
       const hashedPassword = await bcrypt.hash(user.password, 10);
 
+      // Before inserting a new user
+        const existingUser = await this.query(connection, 'SELECT id FROM user WHERE email = ?', [user.email]);
+        if (existingUser.length > 0) {
+          throw new Error('User already exists');
+        }
+
       const userResult = await this.query(connection, `INSERT INTO user (name, email, password) VALUES (?, ?, ?)`, [user.name, user.email, hashedPassword]);
       const userId = userResult.insertId;
       for (const role of user.roles) {
@@ -51,6 +57,9 @@ class DB {
         }
       }
       return { ...user, id: userId, password: undefined };
+    }catch (err) {
+      console.error('addUser error:', err.message); // temporary debug log
+      throw err;
     } finally {
       connection.end();
     }
@@ -185,14 +194,31 @@ class DB {
     }
   }
 
-  async addDinerOrder(user, order) {
+ async addDinerOrder(user, order) {
     const connection = await this.getConnection();
     try {
+      const store = await this.query(connection, 'SELECT id FROM store WHERE id = ?', [order.storeId]);
+      if (store.length === 0) {
+        throw new Error('Store not found');
+      }
+      const franchise = await this.query(connection, 'SELECT id FROM franchise WHERE id = ?', [order.franchiseId]);
+      if (franchise.length === 0) {
+        throw new Error('Franchise not found');
+      }
+
       const orderResult = await this.query(connection, `INSERT INTO dinerOrder (dinerId, franchiseId, storeId, date) VALUES (?, ?, ?, now())`, [user.id, order.franchiseId, order.storeId]);
       const orderId = orderResult.insertId;
       for (const item of order.items) {
+        // Fetch real price from DB, ignore client price
+        const menuItem = await this.query(connection, 'SELECT price FROM menu WHERE id = ?', [item.menuId]);
+        const actualPrice = menuItem[0]?.price;
+
+        if (!actualPrice || actualPrice <= 0) {
+          throw new Error('Invalid item or price');
+        }
+
         const menuId = await this.getID(connection, 'id', item.menuId, 'menu');
-        await this.query(connection, `INSERT INTO orderItem (orderId, menuId, description, price) VALUES (?, ?, ?, ?)`, [orderId, menuId, item.description, item.price]);
+        await this.query(connection, `INSERT INTO orderItem (orderId, menuId, description, price) VALUES (?, ?, ?, ?)`, [orderId, menuId, item.description, actualPrice]);
       }
       return { ...order, id: orderId };
     } finally {
